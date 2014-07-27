@@ -39,7 +39,7 @@ static inline int mpeg2_get_is_frame_start(MpegEncContext *s)
 static int vaapi_mpeg2_start_frame(AVCodecContext *avctx, av_unused const uint8_t *buffer, av_unused uint32_t size)
 {
     struct MpegEncContext * const s = avctx->priv_data;
-    struct vaapi_context * const vactx = avctx->hwaccel_context;
+    AVVAAPIContext * const vactx = avctx->hwaccel_context;
     VAPictureParameterBufferMPEG2 *pic_param;
     VAIQMatrixBufferMPEG2 *iq_matrix;
     int i;
@@ -132,6 +132,16 @@ static int vaapi_mpeg2_decode_slice(AVCodecContext *avctx, const uint8_t *buffer
     slice_param->intra_slice_flag               = intra_slice_flag;
     return 0;
 }
+
+AVHWAccel ff_mpeg1_vaapi_hwaccel = {
+    .name           = "mpeg1_vaapi",
+    .type           = AVMEDIA_TYPE_VIDEO,
+    .id             = AV_CODEC_ID_MPEG1VIDEO,
+    .pix_fmt        = AV_PIX_FMT_VAAPI_VLD,
+    .start_frame    = vaapi_mpeg2_start_frame,
+    .end_frame      = ff_vaapi_mpeg_end_frame,
+    .decode_slice   = vaapi_mpeg2_decode_slice,
+};
 
 AVHWAccel ff_mpeg2_vaapi_hwaccel = {
     .name           = "mpeg2_vaapi",

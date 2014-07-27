@@ -21,6 +21,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <va/va.h>
+
+#include "avcodec.h"
 #include "h264.h"
 #include "vaapi_internal.h"
 
@@ -41,7 +44,7 @@ static void destroy_buffers(VADisplay display, VABufferID *buffers, unsigned int
     }
 }
 
-int ff_vaapi_render_picture(struct vaapi_context *vactx, VASurfaceID surface)
+int ff_vaapi_render_picture(AVVAAPIContext *vactx, VASurfaceID surface)
 {
     VABufferID va_buffers[3];
     unsigned int n_va_buffers = 0;
@@ -81,7 +84,7 @@ int ff_vaapi_render_picture(struct vaapi_context *vactx, VASurfaceID surface)
     return 0;
 }
 
-int ff_vaapi_commit_slices(struct vaapi_context *vactx)
+int ff_vaapi_commit_slices(AVVAAPIContext *vactx)
 {
     VABufferID *slice_buf_ids;
     VABufferID slice_param_buf_id, slice_data_buf_id;
@@ -121,7 +124,7 @@ int ff_vaapi_commit_slices(struct vaapi_context *vactx)
     return 0;
 }
 
-static void *alloc_buffer(struct vaapi_context *vactx, int type, unsigned int size, uint32_t *buf_id)
+static void *alloc_buffer(AVVAAPIContext *vactx, int type, unsigned int size, uint32_t *buf_id)
 {
     void *data = NULL;
 
@@ -133,22 +136,22 @@ static void *alloc_buffer(struct vaapi_context *vactx, int type, unsigned int si
     return data;
 }
 
-void *ff_vaapi_alloc_pic_param(struct vaapi_context *vactx, unsigned int size)
+void *ff_vaapi_alloc_pic_param(AVVAAPIContext *vactx, unsigned int size)
 {
     return alloc_buffer(vactx, VAPictureParameterBufferType, size, &vactx->pic_param_buf_id);
 }
 
-void *ff_vaapi_alloc_iq_matrix(struct vaapi_context *vactx, unsigned int size)
+void *ff_vaapi_alloc_iq_matrix(AVVAAPIContext *vactx, unsigned int size)
 {
     return alloc_buffer(vactx, VAIQMatrixBufferType, size, &vactx->iq_matrix_buf_id);
 }
 
-uint8_t *ff_vaapi_alloc_bitplane(struct vaapi_context *vactx, uint32_t size)
+uint8_t *ff_vaapi_alloc_bitplane(AVVAAPIContext *vactx, uint32_t size)
 {
     return alloc_buffer(vactx, VABitPlaneBufferType, size, &vactx->bitplane_buf_id);
 }
 
-VASliceParameterBufferBase *ff_vaapi_alloc_slice(struct vaapi_context *vactx, const uint8_t *buffer, uint32_t size)
+VASliceParameterBufferBase *ff_vaapi_alloc_slice(AVVAAPIContext *vactx, const uint8_t *buffer, uint32_t size)
 {
     uint8_t *slice_params;
     VASliceParameterBufferBase *slice_param;
@@ -181,7 +184,7 @@ VASliceParameterBufferBase *ff_vaapi_alloc_slice(struct vaapi_context *vactx, co
 
 void ff_vaapi_common_end_frame(AVCodecContext *avctx)
 {
-    struct vaapi_context * const vactx = avctx->hwaccel_context;
+    AVVAAPIContext * const vactx = avctx->hwaccel_context;
 
     av_dlog(avctx, "ff_vaapi_common_end_frame()\n");
 
@@ -195,6 +198,54 @@ void ff_vaapi_common_end_frame(AVCodecContext *avctx)
     vactx->slice_buf_ids_alloc = 0;
     vactx->slice_count         = 0;
     vactx->slice_params_alloc  = 0;
+}
+
+int av_vaapi_get_profile(AVCodecContext *avctx, VAProfile *profile)
+{
+#define PROFILE(prof)       \
+do {                        \
+    *profile = prof;        \
+    return 0;               \
+} while (0)
+
+    switch (avctx->codec_id) {
+    case AV_CODEC_ID_MPEG1VIDEO:               PROFILE(VAProfileMPEG2Main);
+    case AV_CODEC_ID_MPEG2VIDEO:
+        switch (avctx->profile) {
+        case FF_PROFILE_MPEG2_MAIN:            PROFILE(VAProfileMPEG2Main);
+        case FF_PROFILE_MPEG2_SIMPLE:          PROFILE(VAProfileMPEG2Simple);
+        default:                               return AVERROR(EINVAL);
+        }
+    case AV_CODEC_ID_H263:                     PROFILE(VAProfileMPEG4AdvancedSimple);
+    case AV_CODEC_ID_MPEG4:
+        switch (avctx->profile) {
+        case FF_PROFILE_MPEG4_SIMPLE:          PROFILE(VAProfileMPEG4Simple);
+        case FF_PROFILE_MPEG4_ADVANCED_SIMPLE: PROFILE(VAProfileMPEG4AdvancedSimple);
+        default:                               return AVERROR(EINVAL);
+        }
+    case AV_CODEC_ID_H264:
+        switch (avctx->profile) {
+        case FF_PROFILE_H264_CONSTRAINED_BASELINE: PROFILE(VAProfileH264ConstrainedBaseline);
+        case FF_PROFILE_H264_BASELINE:             PROFILE(VAProfileH264Baseline);
+        case FF_PROFILE_H264_MAIN:                 PROFILE(VAProfileH264Main);
+        case FF_PROFILE_H264_HIGH:                 PROFILE(VAProfileH264High);
+        default:                                   return AVERROR(EINVAL);
+        }
+    case AV_CODEC_ID_WMV3:
+    case AV_CODEC_ID_VC1:
+        switch (avctx->profile) {
+        case FF_PROFILE_VC1_SIMPLE:            PROFILE(VAProfileVC1Simple);
+        case FF_PROFILE_VC1_MAIN:              PROFILE(VAProfileVC1Main);
+        case FF_PROFILE_VC1_ADVANCED:          PROFILE(VAProfileVC1Advanced);
+        default:                               return AVERROR(EINVAL);
+        }
+    }
+    return AVERROR(EINVAL);
+}
+
+AVVAAPIContext *av_vaapi_alloc_context(void)
+{
+    return av_mallocz(sizeof(AVVAAPIContext));
 }
 
 /* @} */

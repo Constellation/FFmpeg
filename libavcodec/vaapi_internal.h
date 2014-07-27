@@ -45,13 +45,13 @@ static inline VASurfaceID ff_vaapi_get_surface_id(AVFrame *pic)
 void ff_vaapi_common_end_frame(AVCodecContext *avctx);
 
 /** Allocate a new picture parameter buffer */
-void *ff_vaapi_alloc_pic_param(struct vaapi_context *vactx, unsigned int size);
+void *ff_vaapi_alloc_pic_param(AVVAAPIContext *vactx, unsigned int size);
 
 /** Allocate a new IQ matrix buffer */
-void *ff_vaapi_alloc_iq_matrix(struct vaapi_context *vactx, unsigned int size);
+void *ff_vaapi_alloc_iq_matrix(AVVAAPIContext *vactx, unsigned int size);
 
 /** Allocate a new bit-plane buffer */
-uint8_t *ff_vaapi_alloc_bitplane(struct vaapi_context *vactx, uint32_t size);
+uint8_t *ff_vaapi_alloc_bitplane(AVVAAPIContext *vactx, uint32_t size);
 
 /**
  * Allocate a new slice descriptor for the input slice.
@@ -61,11 +61,11 @@ uint8_t *ff_vaapi_alloc_bitplane(struct vaapi_context *vactx, uint32_t size);
  * @param size the size of the slice in bytes
  * @return the newly allocated slice parameter
  */
-VASliceParameterBufferBase *ff_vaapi_alloc_slice(struct vaapi_context *vactx, const uint8_t *buffer, uint32_t size);
+VASliceParameterBufferBase *ff_vaapi_alloc_slice(AVVAAPIContext *vactx, const uint8_t *buffer, uint32_t size);
 
 int ff_vaapi_mpeg_end_frame(AVCodecContext *avctx);
-int ff_vaapi_commit_slices(struct vaapi_context *vactx);
-int ff_vaapi_render_picture(struct vaapi_context *vactx, VASurfaceID surface);
+int ff_vaapi_commit_slices(AVVAAPIContext *vactx);
+int ff_vaapi_render_picture(AVVAAPIContext *vactx, VASurfaceID surface);
 
 /* @} */
 

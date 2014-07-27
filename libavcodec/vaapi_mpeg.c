@@ -26,7 +26,7 @@
 
 int ff_vaapi_mpeg_end_frame(AVCodecContext *avctx)
 {
-    struct vaapi_context * const vactx = avctx->hwaccel_context;
+    AVVAAPIContext * const vactx = avctx->hwaccel_context;
     MpegEncContext *s = avctx->priv_data;
     int ret;
 

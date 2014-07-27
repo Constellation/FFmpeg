@@ -171,5 +171,8 @@
 #ifndef FF_API_AFD
 #define FF_API_AFD               (LIBAVCODEC_VERSION_MAJOR < 57)
 #endif
+#ifndef FF_API_VAAPI_CONTEXT
+#define FF_API_VAAPI_CONTEXT     (LIBAVCODEC_VERSION_MAJOR < 56)
+#endif
 
 #endif /* AVCODEC_VERSION_H */

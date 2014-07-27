@@ -70,6 +70,9 @@ const HWAccel hwaccels[] = {
 #if HAVE_DXVA2_LIB
     { "dxva2", dxva2_init, HWACCEL_DXVA2, AV_PIX_FMT_DXVA2_VLD },
 #endif
+#if HAVE_VAAPI_DRM || HAVE_VAAPI_X11
+    { "vaapi", vaapi_init, HWACCEL_VAAPI, AV_PIX_FMT_VAAPI_VLD },
+#endif
 #if CONFIG_VDA
     { "vda",   vda_init,   HWACCEL_VDA,   AV_PIX_FMT_VDA },
 #endif
@@ -681,6 +684,40 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic)
                     exit_program(1);
             }
             ist->hwaccel_pix_fmt = AV_PIX_FMT_NONE;
+
+            MATCH_PER_STREAM_OPT(hwaccels, str, hwaccel, ic, st);
+            if (hwaccel) {
+                if (!strcmp(hwaccel, "none"))
+                    ist->hwaccel_id = HWACCEL_NONE;
+                else if (!strcmp(hwaccel, "auto"))
+                    ist->hwaccel_id = HWACCEL_AUTO;
+                else {
+                    int i;
+                    for (i = 0; hwaccels[i].name; i++) {
+                        if (!strcmp(hwaccels[i].name, hwaccel)) {
+                            ist->hwaccel_id = hwaccels[i].id;
+                            break;
+                        }
+                    }
+
+                    if (!ist->hwaccel_id) {
+                        av_log(NULL, AV_LOG_FATAL, "Unrecognized hwaccel: %s.\n",
+                               hwaccel);
+                        av_log(NULL, AV_LOG_FATAL, "Supported hwaccels: ");
+                        for (i = 0; hwaccels[i].name; i++)
+                            av_log(NULL, AV_LOG_FATAL, "%s ", hwaccels[i].name);
+                        av_log(NULL, AV_LOG_FATAL, "\n");
+                        exit_program(1);
+                    }
+                }
+            }
+
+            MATCH_PER_STREAM_OPT(hwaccel_devices, str, hwaccel_device, ic, st);
+            if (hwaccel_device) {
+                ist->hwaccel_device = av_strdup(hwaccel_device);
+                if (!ist->hwaccel_device)
+                    exit_program(1);
+            }
 
             break;
         case AVMEDIA_TYPE_AUDIO:

@@ -2632,7 +2632,7 @@ typedef struct AVCodecContext {
      * provided by the user. In that case, this holds display-dependent
      * data FFmpeg cannot instantiate itself. Please refer to the
      * FFmpeg HW accelerator documentation to know how to fill this
-     * is. e.g. for VA API, this is a struct vaapi_context.
+     * is. e.g. for VA API, this is a AVVAAPIContext.
      * - encoding: unused
      * - decoding: Set by user
      */

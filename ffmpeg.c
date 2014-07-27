@@ -1860,6 +1860,7 @@ static int decode_audio(InputStream *ist, AVPacket *pkt, int *got_output)
     }
     decoded_frame->pts = AV_NOPTS_VALUE;
 
+fail:
     av_frame_unref(ist->filter_frame);
     av_frame_unref(decoded_frame);
     return err < 0 ? err : ret;

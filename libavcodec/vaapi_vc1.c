@@ -147,7 +147,7 @@ static int vaapi_vc1_start_frame(AVCodecContext *avctx, av_unused const uint8_t 
 {
     VC1Context * const v = avctx->priv_data;
     MpegEncContext * const s = &v->s;
-    struct vaapi_context * const vactx = avctx->hwaccel_context;
+    AVVAAPIContext * const vactx = avctx->hwaccel_context;
     VAPictureParameterBufferVC1 *pic_param;
 
     av_dlog(avctx, "vaapi_vc1_start_frame()\n");

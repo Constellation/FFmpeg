@@ -44,7 +44,7 @@ static int vaapi_mpeg4_start_frame(AVCodecContext *avctx, av_unused const uint8_
 {
     Mpeg4DecContext *ctx = avctx->priv_data;
     MpegEncContext * const s = &ctx->m;
-    struct vaapi_context * const vactx = avctx->hwaccel_context;
+    AVVAAPIContext * const vactx = avctx->hwaccel_context;
     VAPictureParameterBufferMPEG4 *pic_param;
     VAIQMatrixBufferMPEG4 *iq_matrix;
     int i;

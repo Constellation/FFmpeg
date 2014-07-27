@@ -29,6 +29,8 @@ $(foreach prog,$(AVBASENAMES),$(eval OBJS-$(prog) += cmdutils.o))
 $(foreach prog,$(AVBASENAMES),$(eval OBJS-$(prog)-$(CONFIG_OPENCL) += cmdutils_opencl.o))
 
 OBJS-ffmpeg                   += ffmpeg_opt.o ffmpeg_filter.o
+OBJS-ffmpeg-$(HAVE_VAAPI_DRM) += ffmpeg_vaapi.o
+OBJS-ffmpeg-$(HAVE_VAAPI_X11) += ffmpeg_vaapi.o
 OBJS-ffmpeg-$(HAVE_VDPAU_X11) += ffmpeg_vdpau.o
 OBJS-ffmpeg-$(HAVE_DXVA2_LIB) += ffmpeg_dxva2.o
 OBJS-ffmpeg-$(CONFIG_VDA)     += ffmpeg_vda.o
@@ -101,7 +103,7 @@ $(foreach D,$(FFLIBS),$(eval $(call DOSUBDIR,lib$(D))))
 include $(SRC_PATH)/doc/Makefile
 
 define DOPROG
-OBJS-$(1) += $(1).o $(EXEOBJS) $(OBJS-$(1)-yes)
+OBJS-$(1) += $(1).o $(EXEOBJS) $$(sort $$(OBJS-$(1)-yes))
 $(1)$(PROGSSUF)_g$(EXESUF): $$(OBJS-$(1))
 $$(OBJS-$(1)): CFLAGS  += $(CFLAGS-$(1))
 $(1)$(PROGSSUF)_g$(EXESUF): LDFLAGS += $(LDFLAGS-$(1))

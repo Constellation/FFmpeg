@@ -1732,6 +1732,8 @@ SYSTEM_FUNCS="
     sysconf
     sysctl
     usleep
+    vaapi_drm
+    vaapi_x11
     VirtualAlloc
     wglGetProcAddress
 "
@@ -2611,6 +2613,7 @@ swscale_deps="avutil"
 
 # programs
 ffmpeg_deps="avcodec avfilter avformat swresample"
+ffmpeg_libs='$libdrm_libs'
 ffmpeg_select="aformat_filter anull_filter atrim_filter format_filter
                null_filter
                setpts_filter trim_filter"
@@ -4939,6 +4942,15 @@ require Xext X11/extensions/XShm.h XShmCreateImage -lXext &&
 require Xfixes X11/extensions/Xfixes.h XFixesGetCursorImage -lXfixes &&
 { enabled xlib || die "ERROR: Xlib not found"; }
 
+enabled vaapi && enabled unistd_h &&
+    check_pkg_config libdrm xf86drm.h drmOpen &&
+    check_lib2 "va/va.h va/va_drm.h" vaGetDisplayDRM -lva -lva-drm &&
+    enable vaapi_drm
+
+enabled vaapi && enabled xlib &&
+    check_lib2 "va/va.h va/va_x11.h" vaGetDisplay -lva -lva-x11 &&
+    enable vaapi_x11
+
 check_func_headers "windows.h" CreateDIBSection "$gdigrab_indev_extralibs"
 
 enabled dxva2api_h &&
@@ -5494,6 +5506,7 @@ TARGET_EXEC=$target_exec $target_exec_args
 TARGET_PATH=$target_path
 TARGET_SAMPLES=${target_samples:-\$(SAMPLES)}
 CFLAGS-ffplay=$sdl_cflags
+CFLAGS-ffmpeg=$libdrm_cflags
 ZLIB=$($ldflags_filter -lz)
 LIB_INSTALL_EXTRA_CMD=$LIB_INSTALL_EXTRA_CMD
 EXTRALIBS=$extralibs
