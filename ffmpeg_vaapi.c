@@ -192,8 +192,8 @@ static int vaapi_retrieve_data(AVCodecContext *s, AVFrame *frame)
     av_frame_unref(frame);
     av_frame_move_ref(frame, ctx->tmp_frame);
 
-    return 0;
-
+    /* YV12 and YUV420P are essentially the same, but U and V are reversed.
+     * To convert YV12 to YUV420P, swap U and V data */
     if (frame->format == AV_PIX_FMT_YUV420P)
         FFSWAP(uint8_t*, frame->data[1], frame->data[2]);
 
